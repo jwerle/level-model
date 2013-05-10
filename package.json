@@ -1,0 +1,22 @@
+{
+  "name": "level-model",
+  "version": "0.0.1",
+  "description": "level-model",
+  "main": "index.js",
+  "dependencies": {
+    "draft": "0.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": "",
+  "keywords": [
+    "leveldb",
+    "levelup",
+    "model",
+    "level"
+  ],
+  "author": "Joseph Werle <joseph.werle@gmail.com>",
+  "license": "MIT"
+}
