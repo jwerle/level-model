@@ -9,6 +9,17 @@ var draft = require('draft')
 module.exports = model;
 
 /**
+ * CHecks whether a given input is in an array
+ *
+ * @api private
+ * @param {Array} array
+ * @param {Mixed} needle
+ */
+function inArray (array, needle) {
+  return !!~array.indexOf(needle);
+}
+
+/**
  * 
  */
 function find (query, callback) {
@@ -34,13 +45,28 @@ function find (query, callback) {
       return new Model(item);
     });
 
-    callback(null, found);
+    callback(null, found, collection, db);
   });
 }
 
 function findOne (query, callback) {
   this.find(query, function (err, results) {
     callback(err, results[0]);
+  });
+}
+
+function remove (query, callback) {
+  var name = this.modelName.toLowerCase()
+  this.find(query, function (err, results, collection, db) {
+    var ids = results.map(function (item) { return item._id; });
+    collection = collection.filter(function (item) {
+      return !inArray(ids, item._id);
+    });
+
+    db.put(name, JSON.stringify(collection), function (err) {
+      if (err) return callback(err);
+      callback(null, ids.length);
+    });
   });
 }
 
@@ -54,9 +80,10 @@ function findOne (query, callback) {
 function model (name, schema, options) {
   var Model
   schema = new draft.Schema(schema, options);
+  // instance _id place holdr
+  schema.add('_id', Number);
   // place holder for the modelName attribute
   schema.add('modelName', { static: true, value: name, type: String });
-
   // place holder for the modelName attribute
   schema.add('db', { static: true, type: Function, value: function () { 
     return this.prototype.db; 
@@ -82,6 +109,11 @@ function model (name, schema, options) {
    * findOne() function
    */
   schema.add('findOne', { static: true, type: Function, value: findOne});
+
+  /**
+   * remove() function
+   */
+  schema.add('remove', { static: true, type: Function, value: remove});
     
   // create the model constructor instance
   Model = schema.createModel(null, proto);
@@ -104,6 +136,7 @@ proto.save = function (callback) {
   var self  = this
     , name  = this.modelName.toLowerCase()
     , clean = this.toObject()
+    , _id
 
   if (typeof this.db !== 'object') 
     throw new Error("Missing db handle");
@@ -112,9 +145,11 @@ proto.save = function (callback) {
     self.db.get(name, function (err, collection) {
       if (err) return callback(err);
       collection = JSON.parse(collection);
+      clean._id = collection.length;
       collection.push(clean);
       self.db.put(name, JSON.stringify(collection), function (err) {
         if (err) return callback(err);
+        self._id = _id;
         callback(null, clean, collection);
       });
     });
@@ -143,4 +178,14 @@ proto.createCollection = function (callback) {
   this.db.put(name, JSON.stringify([]), function (err) {
     return callback(err);
   });
+};
+
+proto.removeCollection = function (callback) {
+
+};
+
+proto.remove = function (callback) {
+  var name = this.modelName.toLowerCase()
+  if (typeof this.db !== 'object') throw new Error("Missing db handle");
+  this.Model.remove({ _id: this._id }, callback);
 };

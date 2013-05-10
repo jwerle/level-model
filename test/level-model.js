@@ -30,6 +30,22 @@ describe("model", function () {
         });
       });
     });
+
+    describe('#remove', function () {
+      it("Should be able to remove the instance item from its collection", function (done) {
+        var User = model('User', { name:String })
+        User.use('db', levelup('./tmp/db'))
+        var user = new User({ name: 'werle2' })
+        user.save(function (err) {
+          if (err) throw err;
+          user.remove(function (err, affected) {
+            if (err) throw err;
+            assert.ok(affected === 1);
+            user.db.close(done);
+          });
+        });
+      });
+    });
   });
 
   describe('.find', function () {
