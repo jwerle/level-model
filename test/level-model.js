@@ -48,13 +48,57 @@ describe("model", function () {
     });
   });
 
+  describe('.save', function () {
+    it("Should save one or more items who are instances of a given model to the model's collection", function (done) {
+      var Thing = model('Thing', { name:String })
+      Thing.use('db', levelup('./tmp/db'))
+      var thing1 = new Thing({ name: 'thing1' })
+      var thing2 = new Thing({ name: 'thing2' })
+      var thing3 = new Thing({ name: 'thing3' })
+      var thing4 = new Thing({ name: 'thing4' })
+      var thing5 = new Thing({ name: 'thing5' })
+      var thing6 = new Thing({ name: 'thing6' })
+      var array = [thing1, thing2, thing3, thing4, thing5, thing6]
+      Thing.save(array, function (err, things) {
+        if (err) throw err;
+        assert.ok(array.length === things.length);
+        Thing.db().close(done);
+      });
+    });
+  });
+
+  describe('.remove', function () {
+    it("Should remove an item in a model collection based on a given query", function (done) {
+      var User = model('User', { name:String, email:String });
+      var Post = model('Post', { owner:User, content:String, created:Date, updated:Date })
+      User.use('db', levelup('./tmp/db'))
+      Post.use('db', levelup('./tmp/db'))
+      var user = new User({ name: 'werle', email: 'joseph@werle.io' });
+      var post = new Post({ owner: user, content: "I am a post", created: new Date, updated: new Date })
+      user.save(function (err) {
+        if (err) throw err;
+        
+        post.save(function (err) {
+          if (err) throw err;
+          user.remove(function (err) {
+            if (err) throw err;
+            post.remove(function (err) {
+              if (err) throw err;
+              done();
+            })
+          })
+        });
+      });
+    });
+  });
+
   describe('.find', function () {
     it("Should return an array of found items based on a query", function (done) {
       var User = model('User', { name:String })
       User.use('db', levelup('./tmp/db'))
       User.find({ name: 'werle' }, function (err, results) {
         if (err) throw err;
-        assert.ok(results.length === 1);
+        assert.ok(results.length);
         User.db().close(done);
       });
     });
@@ -78,9 +122,11 @@ describe("model", function () {
       var User = model('User', { name:String });
       User.use('db', levelup('./tmp/db'));
       assert.ok(typeof User.prototype.db === 'object');
-      User.prototype.db.close(function () {
-        levelup.destroy('./tmp/db', done);
-      });
+      User.prototype.db.close(done);
     });
+  });
+
+  after(function (done) {
+    levelup.destroy('./tmp/db', done);
   });
 });

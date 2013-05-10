@@ -1,7 +1,8 @@
 /**
  * Module Dependencies
  */
-var draft = require('draft')
+var draft   = require('draft')
+  , isArray = Array.isArray
 
 /**
  * Exports
@@ -26,6 +27,7 @@ function find (query, callback) {
   var db = this.prototype.db
     , name = this.modelName.toLowerCase()
     , Model = this.prototype.Model
+  
 
   db.get(name, function (err, collection) {
     if (err) return callback(err);
@@ -53,6 +55,38 @@ function findOne (query, callback) {
   this.find(query, function (err, results) {
     callback(err, results[0]);
   });
+}
+
+function save (items, callback) {
+  var i = 0
+    , length = items.length
+    , valid = true
+    , Model = this.prototype.Model
+    , done = []
+
+  items = (isArray(items)) ? items.slice(0) : [items];
+  for (; i < length; i++) {
+    valid = (function (item, i) {
+      if (! (item instanceof Model)) {
+        setTimeout(function () { 
+          callback(new Error("Item at index '"+ i +"' in items array is not a valid model instance")); 
+        }, 0);
+        return false;
+      }
+
+      return true;
+    })(items[i], i);
+    // if not valid break and return from the loop
+    if (!valid) return false;
+  }
+  
+  !function saveAll (err) {
+    if (!items.length) return callback(null, (done.length === 1)? done[0] : done);
+    if (err) return callback(err);
+    var item = items.shift()
+    done.push(item);
+    item.save(saveAll);
+  }();
 }
 
 function remove (query, callback) {
@@ -111,6 +145,11 @@ function model (name, schema, options) {
   schema.add('findOne', { static: true, type: Function, value: findOne});
 
   /**
+   * save() function
+   */
+  schema.add('save', { static: true, type: Function, value: save});
+
+  /**
    * remove() function
    */
   schema.add('remove', { static: true, type: Function, value: remove});
@@ -140,6 +179,7 @@ proto.save = function (callback) {
 
   if (typeof this.db !== 'object') 
     throw new Error("Missing db handle");
+
 
   function addToCollection () {
     self.db.get(name, function (err, collection) {
