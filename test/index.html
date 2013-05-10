@@ -1,0 +1,33 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title></title>
+    <script src="../ljs.js"></script>
+    <script src="../level-model.min.js"></script>
+  </head>
+    <body>
+      <div class="container">
+        <div class="hero-unit">
+          <h1>level-model</h1>
+        </div>
+      </div>
+      <script type="text/javascript">
+      window.model = LevelModel || require('level-model')
+      var User = model('User', { name:String })
+      var db = leveljs('mydb')
+      db.open(function () {
+        User.use('db', db);
+        user = new User({name: 'werleeee'})
+        user.save(function (err) { console.log(err); if (err) throw err; })
+        User.find({}, function (err, users) {
+          console.log(users)
+        });
+      });
+      </script>
+  </body>
+</html>

@@ -69,26 +69,17 @@ describe("model", function () {
 
   describe('.remove', function () {
     it("Should remove an item in a model collection based on a given query", function (done) {
-      var User = model('User', { name:String, email:String });
-      var Post = model('Post', { owner:User, content:String, created:Date, updated:Date })
-      User.use('db', levelup('./tmp/db'))
+      var Post = model('Post', { content:String, created:Date, updated:Date })
       Post.use('db', levelup('./tmp/db'))
-      var user = new User({ name: 'werle', email: 'joseph@werle.io' });
-      var post = new Post({ owner: user, content: "I am a post", created: new Date, updated: new Date })
-      user.save(function (err) {
+      var post = new Post({ content: "I am a post", created: new Date, updated: new Date })
+
+      post.save(function (err) {
         if (err) throw err;
-        
-        post.save(function (err) {
+        Post.remove(post, function (err) {
           if (err) throw err;
-          user.remove(function (err) {
-            if (err) throw err;
-            post.remove(function (err) {
-              if (err) throw err;
-              done();
-            })
-          })
-        });
-      });
+          Post.db().close(done);
+        })
+      })
     });
   });
 

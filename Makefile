@@ -14,6 +14,7 @@ clean:
 
 install:
 	@npm install .
+	@component install
 
 test: install
 	@./node_modules/mocha/bin/mocha -R spec

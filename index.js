@@ -180,13 +180,34 @@ proto.save = function (callback) {
   if (typeof this.db !== 'object') 
     throw new Error("Missing db handle");
 
-
   function addToCollection () {
     self.db.get(name, function (err, collection) {
       if (err) return callback(err);
-      collection = JSON.parse(collection);
-      clean._id = collection.length;
-      collection.push(clean);
+      if (typeof collection === 'string')
+        collection = JSON.parse(collection);
+      if (typeof clean._id !== 'number')
+        clean._id = collection.length;
+
+      self._id = _id = Number(clean._id);
+
+      // TODO: FIX THIS!
+      // on first creation of a collection 
+      // the instance has no _id and for some reason
+      // it can't get set in the browser
+      // console.log(self._id, _id, clean._id)
+
+      var hasItem = collection.some(function (item) {
+        return (item._id === clean._id);
+      });
+
+      if (!hasItem) collection.push(clean);
+      else {
+        collection = collection.map(function (item) {
+          if (item._id === clean._id) return clean;
+          else return item;
+        });
+      }
+
       self.db.put(name, JSON.stringify(collection), function (err) {
         if (err) return callback(err);
         self._id = _id;
@@ -196,11 +217,20 @@ proto.save = function (callback) {
   }
 
   this.db.get(name, function (err, collection) {
-    if (err !== null && err.name.toLowerCase() === 'notfounderror') {
-      self.createCollection(function (err) {
-        if (err) return callback(err);
-        else addToCollection();
-      });
+
+    if (err !== null) {
+      switch (err.name.toLowerCase()) {
+        case 'notfounderror':
+        case 'notfound':
+        case 'error':
+          self.createCollection(function (err) {
+            if (err) return callback(err);
+            else addToCollection();
+          });
+        break;
+
+        default: callback(err)
+      }
     }
     else {
       addToCollection();
