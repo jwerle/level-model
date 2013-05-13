@@ -226,6 +226,7 @@ function model (name, schema, options) {
    * @see LevelModel#readAs
    */
   Model.prototype.readAs = function (name, callback) {
+    var self = this
     db = db || DB;
     if (!db || (db && !hasLevelUpDatabaseInterface(db)))
       throw new TypeError("Invalid database used with model. Must at least support .open(), .close(), .get(), .put(), and .del()");
