@@ -14,7 +14,7 @@
   },
   "testling": {
     "harness" : "mocha",
-    "files": "test/level-model.js",
+    "files": "test/test-browser.js",
     "browsers": {
       "ie" : [ 10 ],
       "ff" : [ 17, 18, 19 ],
