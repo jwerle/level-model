@@ -2,6 +2,7 @@ describe("model", function () {
   var model   = require('../')
     , assert  = require('assert')
     , levelup = require('levelup')
+    , LDB     = levelup('./tmp/db', { json:true })
 
   describe('model(name, schema)', function () {
     it("Should create a new named model constructor based on a provided schema", function () {
@@ -14,110 +15,139 @@ describe("model", function () {
       assert.ok(user.property === undefined);
     });
 
+    describe('.set', function () {
+      it("Should set a global option property", function () {
+        model.set('key', 'somevalue');
+        assert.ok(model.get('key') === 'somevalue');
+      });
+
+      it("Should set the global database for model instances", function () {
+        // set global databases
+        model.set('db', LDB);
+        assert.ok(model.get('db') === LDB);
+      });
+
+      it("Should set the persist flag to true", function () {
+        // keep connections alive
+        model.set('persist', true);
+        assert.ok(model.get('persist') === true);
+      });
+    });
+
+    describe('.get', function () {
+      it("Should get a value set from the global options object", function () {
+        assert.ok(model.get('persist'))
+      });
+    });
+
     describe('#save', function () {
-      it("Should be able to save to a model collection", function (done) {
+      it("Should be able to save to a model", function (done) {
         var User = model('User', { name:String });
-        User.use('db', levelup('./tmp/db'));
         var user = new User({ name: 'werle' });
-        user.save(function (err) {
+
+        user.saveAs(user.name).save(function (err) {
           if (err) throw err;
-          User.find({ name: 'werle'}, function (err, users) {
-            if (err) throw err;
-            assert.ok(typeof users[0] === 'object');
-            assert.ok(users[0].name === user.name);
-            user.db.close(done);
+          user.read(function (err, data) {
+            assert.ok(user.name === data.name);
+            user.remove(done);
           });
+        });
+      });
+    });
+
+    describe('#saveAs', function () {
+      it("Should save a model by a given name", function (done) {
+        var Post = model('Post', { name:String, content:String })
+        var post = new Post({
+          name: 'test',
+          content: "I love to be stored"
+        })
+
+        post.saveAs('joes post', function (err) {
+          if (err) throw err;
+          post.readAs('joes post', function (err, data) {
+            if (err) throw err;
+            assert.ok(post.name === data.name);
+            assert.ok(post.content === data.content)
+            post.removeAs('joes post', function (err) {
+              if (err) throw err;
+              post.name = 'werles';
+              post.content = "Modified later";
+              post.saveAs('werles', function (err) {
+                if (err) throw err;
+                post.readAs('werles', function (err, data) {
+                  assert.ok(post.name === data.name);
+                  assert.ok(post.content === data.content);
+                  post.removeAs('werles', done);
+                });
+              });
+            });
+          })
         });
       });
     });
 
     describe('#remove', function () {
-      it("Should be able to remove the instance item from its collection", function (done) {
+      it("Should be able to remove the instance item from the database", function (done) {
         var User = model('User', { name:String })
-        User.use('db', levelup('./tmp/db'))
         var user = new User({ name: 'werle2' })
-        user.save(function (err) {
+        joe = new User({name: 'joe'})
+        user.saveAs(user.name, function (err) {
           if (err) throw err;
-          user.remove(function (err, affected) {
+          user.remove(done);
+        });
+      });
+    });
+
+    describe('#removeAs', function () {
+      it("Should be able to remove the instance item from the data base by a given name", function (done) {
+        var Widget = model('Widget', { type:String, name:String })
+        var top = new Widget({type: 'canvas', name: 'top'})
+        top.saveAs('top', function (err) {
+          if (err) throw err;
+          top.removeAs('top', done);
+        });
+      });
+    });
+
+    describe('#read', function () {
+      it("Should read a saved object from the database and unserialize its data in to the instance", function (done) {
+        var Post = model('Post', { content:String })
+        var post = new Post({content: "I am a post"})
+        post.saveAs('post', function (err) {
+          if (err) throw err;
+          post.read(function (err, data) {
             if (err) throw err;
-            assert.ok(affected === 1);
-            user.db.close(done);
+            assert.ok(post.content === data.content);
+            done();
           });
         });
       });
     });
-  });
 
-  describe('.save', function () {
-    it("Should save one or more items who are instances of a given model to the model's collection", function (done) {
-      var Thing = model('Thing', { name:String })
-      Thing.use('db', levelup('./tmp/db'))
-      var thing1 = new Thing({ name: 'thing1' })
-      var thing2 = new Thing({ name: 'thing2' })
-      var thing3 = new Thing({ name: 'thing3' })
-      var thing4 = new Thing({ name: 'thing4' })
-      var thing5 = new Thing({ name: 'thing5' })
-      var thing6 = new Thing({ name: 'thing6' })
-      var array = [thing1, thing2, thing3, thing4, thing5, thing6]
-      Thing.save(array, function (err, things) {
-        if (err) throw err;
-        assert.ok(array.length === things.length);
-        Thing.db().close(done);
-      });
-    });
-  });
-
-  describe('.remove', function () {
-    it("Should remove an item in a model collection based on a given query", function (done) {
-      var Post = model('Post', { content:String, created:Date, updated:Date })
-      Post.use('db', levelup('./tmp/db'))
-      var post = new Post({ content: "I am a post", created: new Date, updated: new Date })
-
-      post.save(function (err) {
-        if (err) throw err;
-        Post.remove(post, function (err) {
+    describe('#readAs', function () {
+      it("It should read an already saved object by name and unserizlise its data into the instance", function (done) {
+        var User = model('User', { name:String })
+        var jack = new User({name: 'jack'})
+        var jackCopy = new User()
+        jack.saveAs('jack', function (err) {
           if (err) throw err;
-          Post.db().close(done);
-        })
-      })
-    });
-  });
-
-  describe('.find', function () {
-    it("Should return an array of found items based on a query", function (done) {
-      var User = model('User', { name:String })
-      User.use('db', levelup('./tmp/db'))
-      User.find({ name: 'werle' }, function (err, results) {
-        if (err) throw err;
-        assert.ok(results.length);
-        User.db().close(done);
+          jackCopy.readAs('jack', function (err, data) {
+            if (err) throw err;
+            assert.ok(jack.name === jackCopy.name);
+            assert.ok(jackCopy.name === data.name);
+            done();
+          });
+        });
       });
     });
-  });
 
-  describe('.findOne', function () {
-    it("Should return a single item found in a collection based on a query", function (done) {
-      var User = model('User', { name:String })
-      User.use('db', levelup('./tmp/db'))
-      User.findOne({ name: 'werle' }, function (err, result) {
-        if (err) throw err;
-        assert.ok(result);
-        assert.ok(result.name === 'werle' );
-        User.db().close(done);
-      });
-    });
-  });
 
-  describe('.use(type, instance)', function () {
-    it("Should accept an instance of a levelup database", function (done) {
-      var User = model('User', { name:String });
-      User.use('db', levelup('./tmp/db'));
-      assert.ok(typeof User.prototype.db === 'object');
-      User.prototype.db.close(done);
-    });
   });
 
   after(function (done) {
-    levelup.destroy('./tmp/db', done);
+    LDB.close(function () {
+      levelup.destroy('./tmp/db', done);
+    });
   });
 });

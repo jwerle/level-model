@@ -16,7 +16,7 @@ install:
 	@npm install .
 	@component install
 
-test: install
+test:
 	@./node_modules/mocha/bin/mocha -R spec
 
 dist: build
