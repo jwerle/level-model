@@ -1,22 +1,22 @@
 // for mocha from cli
 if (typeof window === 'undefined') return false;
 
-window.leveljs = leveljs || require('level-js')
-window.model = LevelModel || require('level-model');
+leveljs = leveljs || require('level-js')
+model = LevelModel || require('level-model');
 var db = leveljs('mydb')
 model.set('db', db);
 model.set('persist', true);
 
 var User = model('User', { name:String, age:Number })
 
-if (typeof describe === 'function' && typeof it === 'function') {
+try {
   describe('(browser) level-model', function () {
     it ("Should be just okay", function (done) {
       kickbackAndGo(done)
     });
   });
 }
-else {
+catch (e) {
   kickbackAndGo(false);
 }
 
