@@ -229,8 +229,8 @@ function model (name, schema, options) {
     db = db || DB;
     if (!db || (db && !hasLevelUpDatabaseInterface(db)))
       throw new TypeError("Invalid database used with model. Must at least support .open(), .close(), .get(), .put(), and .del()");
-
-    var self = this
+    // set the name internally
+    Internals('saved', 'name', name);
     transaction(this, db, 'get', [name], function (err, data) {
       if (err) return callback(err);
       return callback(null, self.unserialize(data))
