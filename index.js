@@ -102,7 +102,7 @@ function transaction(scope, db, op, args, callback) {
     });
   }
 
-  if (!db.isOpen()) db.open(trans);
+  if (typeof db.isOpen === 'function' && !db.isOpen()) db.open(trans);
   else trans();
 }
 
@@ -117,8 +117,6 @@ function transaction(scope, db, op, args, callback) {
 function model (name, schema, options) {
   var Model
   schema = new draft.Schema(schema, options);
-  // instance _id place holdr
-  schema.add('_id', Number);
   // place holder for the modelName attribute
   schema.add('modelName', { static: true, value: name, type: String });
   // place holder for the modelName attribute
@@ -190,6 +188,7 @@ function model (name, schema, options) {
    * @see LevelModel#save
    */
   Model.prototype.save = function (callback) {
+    db = db || DB;
     if (!db || (db && !hasLevelUpDatabaseInterface(db)))
       throw new TypeError("Invalid database used with model. Must at least support .open(), .close(), .get(), .put(), and .del()");
 
@@ -205,12 +204,6 @@ function model (name, schema, options) {
    * @see LevelModel#saveAs
    */
   Model.prototype.saveAs = function (name, callback) {
-    if (!LevelModel.prototype.isPrototypeOf(this)) throw new Error("Invalid scope");
-    
-    if (!name) {
-
-    }
-
     Internals('saved', 'name', name);
     if (typeof callback === 'function') this.save(callback);
     return this;
@@ -233,6 +226,10 @@ function model (name, schema, options) {
    * @see LevelModel#readAs
    */
   Model.prototype.readAs = function (name, callback) {
+    db = db || DB;
+    if (!db || (db && !hasLevelUpDatabaseInterface(db)))
+      throw new TypeError("Invalid database used with model. Must at least support .open(), .close(), .get(), .put(), and .del()");
+
     var self = this
     transaction(this, db, 'get', [name], function (err, data) {
       if (err) return callback(err);
@@ -257,6 +254,10 @@ function model (name, schema, options) {
    * @see LevelModel#removeAs
    */
   Model.prototype.removeAs = function (name, callback) {
+    db = db || DB;
+    if (!db || (db && !hasLevelUpDatabaseInterface(db)))
+      throw new TypeError("Invalid database used with model. Must at least support .open(), .close(), .get(), .put(), and .del()");
+
     transaction(this, db, 'del', [name], callback);
   };
 
@@ -269,8 +270,10 @@ function model (name, schema, options) {
     return this.serialize();
   };
 
+  // set DB is defined
   if (hasLevelUpDatabaseInterface(DB))
     Model.use('db', DB);
+
   return Model;
 }
 

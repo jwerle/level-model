@@ -10,6 +10,7 @@ describe("model", function () {
       assert.ok(typeof User === 'function');
       assert.ok(User.modelName === 'User');
       var user = new User( {name: 'werle', email: 'joseph@werle.io', property: 'value' });
+      
       assert.ok(user.name === 'werle');
       assert.ok(user.email === 'joseph@werle.io');
       assert.ok(user.property === undefined);
