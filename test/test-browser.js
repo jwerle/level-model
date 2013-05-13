@@ -1,3 +1,6 @@
+// for mocha from cli
+if (typeof window === 'undefined') return false;
+
 window.model = LevelModel || require('level-model');
 var db = leveljs('mydb')
 model.set('db', db);
