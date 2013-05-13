@@ -1,8 +1,16 @@
 describe("model", function () {
-  var model   = require('../')
+  var hasWindow = (typeof window !== 'undefined')
+      model   = require('../')
     , assert  = require('assert')
-    , levelup = require('levelup')
-    , LDB     = levelup('./tmp/db', { json:true })
+    
+  var LDB = (!hasWindow) ? require('levelup')('./tmp/db', { json:true }) 
+            : require('level-js')('mydb')
+            
+  if (hasWindow) {
+    before(function (done) {
+      LDB.open(done);
+    });
+  }
 
   describe('model(name, schema)', function () {
     it("Should create a new named model constructor based on a provided schema", function () {
@@ -10,7 +18,7 @@ describe("model", function () {
       assert.ok(typeof User === 'function');
       assert.ok(User.modelName === 'User');
       var user = new User( {name: 'werle', email: 'joseph@werle.io', property: 'value' });
-      
+
       assert.ok(user.name === 'werle');
       assert.ok(user.email === 'joseph@werle.io');
       assert.ok(user.property === undefined);
@@ -148,7 +156,7 @@ describe("model", function () {
 
   after(function (done) {
     LDB.close(function () {
-      levelup.destroy('./tmp/db', done);
+      if (!hasWindow) require('levelup').destroy('./tmp/db', done);
     });
   });
 });
