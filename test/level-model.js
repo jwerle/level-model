@@ -5,7 +5,7 @@ describe("model", function () {
     
   var LDB = (!hasWindow) ? require('levelup')('./tmp/db', { json:true }) 
             : require('level-js')('mydb')
-            
+
   if (hasWindow) {
     before(function (done) {
       LDB.open(done);
@@ -157,6 +157,7 @@ describe("model", function () {
   after(function (done) {
     LDB.close(function () {
       if (!hasWindow) require('levelup').destroy('./tmp/db', done);
+      else done();
     });
   });
 });
