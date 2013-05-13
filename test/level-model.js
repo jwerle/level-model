@@ -3,7 +3,7 @@ describe("model", function () {
       model   = require('../')
     , assert  = require('assert')
     
-  var LDB = (!hasWindow) ? require('levelup')('./tmp/db', { json:true }) 
+  var LDB = (!hasWindow) ? require('levelup')('tmp/db', { json:true }) 
             : require('level-js')('mydb')
 
   if (hasWindow) {

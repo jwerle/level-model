@@ -4,7 +4,7 @@
   "description": "level-model",
   "main": "index.js",
   "dependencies": {
-    "draft": "0.0.6"
+    "draft": "0.0.x"
   },
   "devDependencies": {
     "mocha": "~1.9.0",
