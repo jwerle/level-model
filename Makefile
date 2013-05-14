@@ -17,6 +17,7 @@ install:
 	@component install
 
 test:
+	@test -d ./tmp && rm -rf ./tmp && mkdir ./tmp || mkdir ./tmp
 	@./node_modules/mocha/bin/mocha -R spec
 
 dist: build
