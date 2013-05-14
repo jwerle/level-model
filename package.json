@@ -16,8 +16,8 @@
     "harness" : "mocha",
     "files": "test/test-browser.js",
     "browsers": {
-      "ie" : [ 10 ],
-      "ff" : [ 17, 18, 19 ],
+      "ie" : [ "latest" ],
+      "ff" : [ 20, 21 ],
       "chrome" : [ 23, 24, 25 ]
     }
   },
