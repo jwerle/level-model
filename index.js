@@ -111,12 +111,12 @@ function transaction(scope, db, op, args, callback) {
  * 
  * @api public
  * @param {String} name
- * @param {Object} schema
+ * @param {Object} descriptor
  * @param {Object} options
  */
-function model (name, schema, options) {
+function model (name, descriptor, options) {
   var Model
-  schema = new draft.Schema(schema, options);
+  schema = new draft.Schema(descriptor, options);
   // place holder for the modelName attribute
   schema.add('modelName', { static: true, value: name, type: String });
   // place holder for the modelName attribute

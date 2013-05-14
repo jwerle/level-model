@@ -1,5 +1,5 @@
 level-model
-====
+=====
 
 [![level-model](http://www.toonpool.com/user/718/files/model_leans_on_stool_462135.jpg)]()
 
@@ -85,3 +85,7 @@ user.readAs(user.name, function (err) {
 
 
 ## api
+
+### model(name, descriptor, options)
+
+Creates a named model
