@@ -158,6 +158,12 @@ $ component install jwerle/level-model
 $ bower install level-model
 ```
 
+*browser*
+
+```html
+<script type="text/javascript" src="https://raw.github.com/jwerle/level-model/master/level-model.min.js"></script>
+```
+
 ## usage
 
 ```js
