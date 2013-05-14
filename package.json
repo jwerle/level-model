@@ -14,7 +14,7 @@
   },
   "testling": {
     "harness" : "mocha",
-    "files": "test/test-browser.js",
+    "files": "test/*.js",
     "browsers": {
       "ie" : [ 10 ],
       "ff" : [ 17, 18, 19 ],
