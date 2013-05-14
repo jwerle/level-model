@@ -17,7 +17,7 @@ try {
   describe('(browser) level-model', function () {
     it ("Should be just okay", function (done) {
       try { kickbackAndGo(done) }
-      catch (e) { console.warn('failed'); done(); }
+      catch (e) { console.log('failed'); done(); }
     });
   });
 }
