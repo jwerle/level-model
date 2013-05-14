@@ -128,14 +128,14 @@ function model (name, descriptor, options) {
    * use plugin function
    */
   var db
-  schema.add('use', { static: true, type: Function,  value: function (type, thing) {
-    switch (type) {
+  schema.add('use', { static: true, type: Function,  value: function (name, value) {
+    switch (name) {
       case 'db':
-        db = thing;
+        db = value;
       break;
     }
 
-    if (!thing) Model.prototype[type] = thing;
+    if (!value) Model.prototype[name] = value;
   }});
 
   /**
@@ -287,6 +287,12 @@ function model (name, descriptor, options) {
  * @param {String} value
  */
 model.set = function (key, value) {
+  if (typeof key === 'object' && !value) {
+    for (var prop in key)
+      this.set(prop, key[prop]);
+
+    return true;
+  }
   switch (key) {
     case 'persist' :
       OPTS.persist = value;
@@ -308,7 +314,7 @@ model.set = function (key, value) {
 };
 
 /**
- * gets an options for all model instances
+ * Gets an option for all model instances
  *
  * @api public
  * @function model.get
@@ -322,12 +328,13 @@ model.get = function (key) {
  * Generic LevelModel constructor
  *
  * @api public
+ * @inherits draft.Model
  * @constructor LevelModel
  */
-function LevelModel () {}
+var LevelModel = model.LevelModel = function LevelModel () {};
 
 /**
- * Serializes a model into a JSON string
+ * Serializes instance into a JSON string
  *
  * @api public
  * @function LevelModel#Serializes
@@ -337,7 +344,7 @@ LevelModel.prototype.serialize = function () {
 };
 
 /**
- * Unserializes data into a LevelModel instance
+ * Unserializes data into instance
  *
  * @api public
  * @function LevelModel#unserialize
