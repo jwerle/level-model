@@ -12,6 +12,85 @@ Models based on [draft](https://github.com/jwerle/draft) for LevelDB and like in
 
 Built with [draft](https://github.com/jwerle/draft) with levelers in mind. Create models that persist in a LevelDB or LevelUP like interface.
 
+## install
+
+*nodejs*
+
+```sh
+$ npm install level-model --save
+```
+
+*component*
+
+```sh
+$ component install jwerle/level-model
+```
+
+*bower*
+
+```sh
+$ bower install level-model
+```
+
+*browser*
+
+```html
+<script type="text/javascript" src="https://raw.github.com/jwerle/level-model/master/level-model.min.js"></script>
+```
+
+## usage
+
+```js
+var model = require('level-model')
+```
+
+Creating a model with `level-model` is as simple as creating a model with [draft](https://github.com/jwerle/draft)
+
+```js
+var User = model('User', {
+  name: String,
+  profile: {
+    age: Number,
+    email: String
+  }
+});
+
+var user = new User({
+  name: 'werle',
+  profile: {
+    age: 22,
+    email: 'joseph@werle.io'
+  }
+});
+```
+
+Model creation is pretty much identical to creating models with `draft`.
+
+You are going to need to connect your models to a database with a LevelUP like api.
+
+```js
+model.set('db', require('levelup')('./mydb'));
+model.get('db'); // LevelUP database instance
+```
+Once you set the database you can now make operations with the model instances.
+
+```js
+// always use .saveAs when saving for the first time
+user.saveAs(user.name, function (err) {
+  if (err) throw err;
+});
+```
+
+You could later read that models data back into its object instance with the `readAs` or `read` methods
+
+```js
+// always use .readAs() before .read() if the objects data is being populated with database data instead of argument data to the model constructor as the readAs() function will set the internel savedName property.
+user.readAs(user.name, function (err, data) {
+  if (err) throw err;
+  // do something with data
+});
+```
+
 ## support
 
 Built to work with Nodejs and the browser. Consider using something like [level.js](https://github.com/maxogden/level.js) or [levelup](https://github.com/rvagg/node-levelup) as a database interface.
@@ -136,85 +215,6 @@ model.set('db', new Database('my-db'));
 
 // local
 MyModel.use('db', new Database('my-db'));
-```
-
-## install
-
-*nodejs*
-
-```sh
-$ npm install level-model --save
-```
-
-*component*
-
-```sh
-$ component install jwerle/level-model
-```
-
-*bower*
-
-```sh
-$ bower install level-model
-```
-
-*browser*
-
-```html
-<script type="text/javascript" src="https://raw.github.com/jwerle/level-model/master/level-model.min.js"></script>
-```
-
-## usage
-
-```js
-var model = require('model')
-```
-
-Creating a model with `level-model` is as simple as creating a model with [draft](https://github.com/jwerle/draft)
-
-```js
-var User = model('User', {
-  name: String,
-  profile: {
-    age: Number,
-    email: String
-  }
-});
-
-var user = new User({
-  name: 'werle',
-  profile: {
-    age: 22,
-    email: 'joseph@werle.io'
-  }
-});
-```
-
-Model creation is pretty much identical to creating models with `draft`.
-
-You are going to need to connect your models to a database with a LevelUP like api.
-
-```js
-model.set('db', require('levelup')('./mydb'));
-model.get('db'); // LevelUP database instance
-```
-Once you set the database you can now make operations with the model instances.
-
-```js
-// always use .saveAs when saving for the first time
-user.saveAs(user.name, function (err) {
-  if (err) throw err;
-});
-```
-
-You could later read that models data back into its object instance with the `readAs` or `read` methods
-
-```js
-// always use .readAs() before .read() if the objects data is being populated with database data instead of argument data to the model constructor as the readAs() function will set the internel savedName property.
-user.readAs(user.name, function (err, data) {
-  if (err) throw err;
-  // do something with data
-});
 ```
 
 
